@@ -1,3 +1,5 @@
+**Proof on concept** 
+
 # Leaflet.SLDStyler
 
 Apply styling from 1.1.0 SLD-File to a GeoJSON layer.
