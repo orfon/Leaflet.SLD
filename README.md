@@ -1,4 +1,4 @@
-**Proof on concept** 
+**Proof of concept only** 
 
 # Leaflet.SLDStyler
 
