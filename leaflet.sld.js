@@ -55,7 +55,7 @@ var namespaceMapping = {
    sld: 'http://www.opengis.net/sld'
 };
 
-function getTagNameArray(element, tagName) {
+function getTagNameArray(element, tagName, childrens) {
    var tagParts = tagName.split(':');
    var ns = null;
    var tags;
@@ -65,10 +65,21 @@ function getTagNameArray(element, tagName) {
       tagName = tagParts[1];
    }
 
-   tags = [].slice.call(element.getElementsByTagNameNS(namespaceMapping[ns], tagName));
+   if(typeof(childrens) !== 'undefined' && childrens) {
+      tags = [].filter.call(
+         element.children,
+         function(element) {
+            return element.tagName === ns + ':' + tagName
+         }
+      )
+   } else
+      tags = [].slice.call(element.getElementsByTagNameNS(
+         namespaceMapping[ns],
+         tagName
+      ));
 
    if(!tags.length && ns === 'se')
-      return getTagNameArray(element, 'sld:' + tagName);
+      return getTagNameArray(element, 'sld:' + tagName, childrens);
    else
       return tags;
 };
@@ -84,6 +95,7 @@ L.SLDStyler = L.Class.extend({
    initialize: function(sldStringOrXml, options) {
       L.Util.setOptions(this, options);
       if (sldStringOrXml !== undefined) {
+         this.featureTypeStylesNameMap = {};
          this.featureTypeStyles = this.parse(sldStringOrXml);
       }
    },
@@ -140,7 +152,6 @@ L.SLDStyler = L.Class.extend({
       }
    },
    parseRule: function(rule) {
-
       var filter = getTagNameArray(rule, 'ogc:Filter')[0];
       var symbolizer = getTagNameArray(rule, 'se:PolygonSymbolizer')[0];
       return {
@@ -150,17 +161,50 @@ L.SLDStyler = L.Class.extend({
    },
    parse: function(sldStringOrXml) {
       var xmlDoc = sldStringOrXml;
+      var self = this;
+
       if (typeof(sldStringOrXml) === 'string') {
          var parser = new DOMParser();
          xmlDoc = parser.parseFromString(sldStringOrXml, "text/xml");
       }
       var featureTypeStyles = getTagNameArray(xmlDoc, 'se:FeatureTypeStyle');
       window.xmlDoc = xmlDoc;
+
+      featureTypeStyles.forEach(function(element, idx) {
+         var layerName = getTagNameArray(
+            element.parentElement.parentElement,
+            'se:Name',
+            true
+         ).map(function (node) {
+            return node.innerHTML;
+         });
+
+         if(layerName.length) {
+            self.featureTypeStylesNameMap[layerName] = idx;
+         }
+      });
+
       return featureTypeStyles.map(function(featureTypeStyle) {
          var rules = getTagNameArray(featureTypeStyle, 'se:Rule');
-         return rules.map(function(rule) {
-            return this.parseRule(rule);
-         }, this);
+         var name = getTagNameArray(
+               featureTypeStyle.parentElement,
+               'se:Name',
+               true
+            ).map(function(node) {
+               return node.innerHTML;
+            });
+
+         if(!name.length)
+            name = null;
+         else
+            name = name[0];
+
+         return {
+            'name' : name,
+            'rules': rules.map(function(rule) {
+               return this.parseRule(rule);
+            }, this)
+         };
       }, this);
    },
    isFilterMatch: function(filter, properties) {
@@ -186,23 +230,54 @@ L.SLDStyler = L.Class.extend({
       } else
          return true;
    },
-   styleFn: function(feature) {
+   matchFn: function (featureTypeStyle, feature) {
       var matchingRule = null;
-      this.featureTypeStyles.some(function(featureTypeStyle) {
-         return featureTypeStyle.some(function(rule) {
-            if (this.isFilterMatch(rule.filter, feature.properties)) {
-               matchingRule = rule;
-               return true;
-            }
-         }, this);
+
+      featureTypeStyle.rules.some(function (rule) {
+         if (this.isFilterMatch(rule.filter, feature.properties)) {
+            matchingRule = rule;
+            return true;
+         }
       }, this);
+
+      return matchingRule;
+   },
+   styleFn: function (indexOrName, feature) {
+      var matchingRule = null;
+
+      if (typeof (indexOrName) !== 'undefined') {
+         if (
+            typeof (indexOrName) === "string" &&
+            indexOrName in this.featureTypeStylesNameMap
+         ) {
+            indexOrName = this.featureTypeStylesNameMap[indexOrName];
+         } else {
+            console.error("Unknown layer style '" + indexOrName + "'.")
+            return {};
+         }
+
+         if(indexOrName in this.featureTypeStyles) {
+            matchingRule = this.matchFn(
+               this.featureTypeStyles[indexOrName],
+               feature
+            )
+         } else {
+            console.error("Unkonwn style index " + indexOrName)
+            return {}
+         }
+      } else
+         this.featureTypeStyles.some(function (featureTypeStyle) {
+            matchingRule = this.matchFn(featureTypeStyle, feature)
+         }, this);
+
       if (matchingRule != null) {
          return matchingRule.symbolizer;
       }
+
       return {};
    },
-   getStyleFunction: function() {
-      return this.styleFn.bind(this);
+   getStyleFunction: function (indexOrName) {
+      return this.styleFn.bind(this, indexOrName);
    }
 });
 
