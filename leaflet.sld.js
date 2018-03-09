@@ -51,17 +51,26 @@ var comparisionOperatorMapping = {
 // namespaces for Tag lookup in XML
 var namespaceMapping = {
    se: 'http://www.opengis.net/se',
-   ogc: 'http://www.opengis.net/ogc'
+   ogc: 'http://www.opengis.net/ogc',
+   sld: 'http://www.opengis.net/sld'
 };
 
 function getTagNameArray(element, tagName) {
    var tagParts = tagName.split(':');
    var ns = null;
+   var tags;
+
    if (tagParts.length == 2) {
       ns = tagParts[0];
       tagName = tagParts[1];
    }
-   return [].slice.call(element.getElementsByTagNameNS(namespaceMapping[ns], tagName));
+
+   tags = [].slice.call(element.getElementsByTagNameNS(namespaceMapping[ns], tagName));
+
+   if(!tags.length && ns === 'se')
+      return getTagNameArray(element, 'sld:' + tagName);
+   else
+      return tags;
 };
 
 /**
@@ -85,6 +94,10 @@ L.SLDStyler = L.Class.extend({
       // are unique so don't bother parsing them seperatly.
       var parameters = getTagNameArray(symbolizer, 'se:SvgParameter');
       var cssParams = L.extend({}, defaultStyle);
+
+      if(!parameters.length)
+         parameters = getTagNameArray(symbolizer, 'se:CssParameter');
+
       parameters.forEach(function(param) {
          var key = param.getAttribute('name');
          var mappedKey = attributeNameMapping[key];
