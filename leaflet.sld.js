@@ -116,27 +116,28 @@ L.SLDStyler = L.Class.extend({
       return cssParams;
    },
    parseFilter: function(filter) {
-
-      var hasAnd = getTagNameArray(filter, 'ogc:And').length;
-      var hasOr = getTagNameArray(filter, 'ogc:Or').length;
-      var filterJson = {
-         operator: hasAnd == true ? 'and' : hasOr ?  'or' : null,
-         comparisions: []
-      };
-      Object.keys(comparisionOperatorMapping).forEach(function(key) {
-         var comparisionElements = getTagNameArray(filter, key);
-         var comparisionOperator = comparisionOperatorMapping[key];
-         comparisionElements.forEach(function(comparisionElement) {
-            var property = getTagNameArray(comparisionElement, 'ogc:PropertyName')[0].textContent;
-            var literal = getTagNameArray(comparisionElement, 'ogc:Literal')[0].textContent;
-            filterJson.comparisions.push({
-               operator: comparisionOperator,
-               property: property,
-               literal: literal
+      if(filter) {
+         var hasAnd = getTagNameArray(filter, 'ogc:And').length;
+         var hasOr = getTagNameArray(filter, 'ogc:Or').length;
+         var filterJson = {
+            operator: hasAnd == true ? 'and' : hasOr ?  'or' : null,
+            comparisions: []
+         };
+         Object.keys(comparisionOperatorMapping).forEach(function(key) {
+            var comparisionElements = getTagNameArray(filter, key);
+            var comparisionOperator = comparisionOperatorMapping[key];
+            comparisionElements.forEach(function(comparisionElement) {
+               var property = getTagNameArray(comparisionElement, 'ogc:PropertyName')[0].textContent;
+               var literal = getTagNameArray(comparisionElement, 'ogc:Literal')[0].textContent;
+               filterJson.comparisions.push({
+                  operator: comparisionOperator,
+                  property: property,
+                  literal: literal
+               })
             })
-         })
-      });
-      return filterJson;
+         });
+         return filterJson;
+      }
    },
    parseRule: function(rule) {
 
@@ -163,24 +164,27 @@ L.SLDStyler = L.Class.extend({
       }, this);
    },
    isFilterMatch: function(filter, properties) {
-      var operator = filter.operator == null || filter.operator == 'and' ? 'every' : 'some';
-      return filter.comparisions[operator](function(comp) {
-         if (comp.operator == '==') {
-            return properties[comp.property] == comp.literal;
-         } else if (comp.operator == '!=') {
-            return properties[comp.property] == comp.literal;
-         } else if (comp.operator == '<') {
-            return properties[comp.property] < comp.literal;
-         } else if (comp.operator == '>') {
-            return properties[comp.property] > comp.literal;
-         } else if (comp.operator == '<=') {
-            return properties[comp.property] <= comp.literal;
-         } else if (comp.operator == '>=') {
-            return properties[comp.property] >= comp.literal;
-         } else {
-            console.error('Unknown comparision operator', comp.operator);
-         }
-      });
+      if (filter) {
+         var operator = filter.operator == null || filter.operator == 'and' ? 'every' : 'some';
+         return filter.comparisions[operator](function(comp) {
+            if (comp.operator == '==') {
+               return properties[comp.property] == comp.literal;
+            } else if (comp.operator == '!=') {
+               return properties[comp.property] == comp.literal;
+            } else if (comp.operator == '<') {
+               return properties[comp.property] < comp.literal;
+            } else if (comp.operator == '>') {
+               return properties[comp.property] > comp.literal;
+            } else if (comp.operator == '<=') {
+               return properties[comp.property] <= comp.literal;
+            } else if (comp.operator == '>=') {
+               return properties[comp.property] >= comp.literal;
+            } else {
+               console.error('Unknown comparision operator', comp.operator);
+            }
+         });
+      } else
+         return true;
    },
    styleFn: function(feature) {
       var matchingRule = null;
