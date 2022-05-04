@@ -89,8 +89,11 @@ function getTagNameArray(element, tagName, childrens) {
  *
  */
 L.SLDStyler = L.Class.extend({
-   // none yet
    options: {
+      unmatchedStyle: {
+         color: false,
+         fill: false
+      }
    },
    initialize: function(sldStringOrXml, options) {
       L.Util.setOptions(this, options);
@@ -153,10 +156,14 @@ L.SLDStyler = L.Class.extend({
    },
    parseRule: function(rule) {
       var filter = getTagNameArray(rule, 'ogc:Filter')[0];
-      var symbolizer = getTagNameArray(rule, 'se:PolygonSymbolizer')[0];
+      var polygonSymbolizer = getTagNameArray(rule, 'se:PolygonSymbolizer')[0];
+      var lineSymbolizer = getTagNameArray(rule, 'se:LineSymbolizer')[0];
+      var pointSymbolizer = getTagNameArray(rule, 'se:PointSymbolizer')[0];
       return {
          filter: this.parseFilter(filter),
-         symbolizer: this.parseSymbolizer(symbolizer)
+         polygonSymbolizer: polygonSymbolizer ? this.parseSymbolizer(polygonSymbolizer) : null,
+         lineSymbolizer: lineSymbolizer ? this.parseSymbolizer(lineSymbolizer) : null,
+         pointSymbolizer: pointSymbolizer ? this.parseSymbolizer(pointSymbolizer) : null
       }
    },
    parse: function(sldStringOrXml) {
@@ -214,7 +221,7 @@ L.SLDStyler = L.Class.extend({
             if (comp.operator == '==') {
                return properties[comp.property] == comp.literal;
             } else if (comp.operator == '!=') {
-               return properties[comp.property] == comp.literal;
+               return properties[comp.property] != comp.literal;
             } else if (comp.operator == '<') {
                return properties[comp.property] < comp.literal;
             } else if (comp.operator == '>') {
@@ -271,7 +278,17 @@ L.SLDStyler = L.Class.extend({
          }, this);
 
       if (matchingRule != null) {
-         return matchingRule.symbolizer;
+         switch (feature.geometry.type) {
+            case 'LineString':
+            case 'MultiLineString':
+               return matchingRule.lineSymbolizer;
+            case 'Polygon':
+            case 'MultiPolygon':
+               return matchingRule.polygonSymbolizer;
+            case 'Point':
+               return matchingRule.pointSymbolizer;
+         }
+         return this.options.unmatchedStyle;
       }
 
       return {};
