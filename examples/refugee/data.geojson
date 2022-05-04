@@ -1,0 +1,14 @@
+{
+"type": "FeatureCollection",
+"name": "data",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "CNTR_ID": "BY", "CNTR_NAME": "Беларусь", "NAME_ENGL": "Belarus", "ISO3_CODE": "BLR", "FID": "BY", "name_de": "Belarus", "refugees": 24719, "flaeche": 177.4069, "txt": "24.719" }, "geometry": { "type": "Point", "coordinates": [ 28.054046301763378, 53.586666411782723 ] } },
+{ "type": "Feature", "properties": { "CNTR_ID": "HU", "CNTR_NAME": "Magyarország", "NAME_ENGL": "Hungary", "ISO3_CODE": "HUN", "FID": "HU", "name_de": "Ungarn", "refugees": 502142, "flaeche": 799.5918, "txt": "502.142" }, "geometry": { "type": "Point", "coordinates": [ 19.419687821295661, 47.176626257724415 ] } },
+{ "type": "Feature", "properties": { "CNTR_ID": "MD", "CNTR_NAME": "Moldova", "NAME_ENGL": "Moldova", "ISO3_CODE": "MDA", "FID": "MD", "name_de": "Moldawien", "refugees": 437362, "flaeche": 746.2349, "txt": "437.362" }, "geometry": { "type": "Point", "coordinates": [ 28.458076190705899, 47.214101132024759 ] } },
+{ "type": "Feature", "properties": { "CNTR_ID": "RO", "CNTR_NAME": "România", "NAME_ENGL": "Romania", "ISO3_CODE": "ROU", "FID": "RO", "name_de": "Rumänien", "refugees": 793420, "flaeche": 1005.0939, "txt": "793.420" }, "geometry": { "type": "Point", "coordinates": [ 24.977586447665836, 45.874304141226013 ] } },
+{ "type": "Feature", "properties": { "CNTR_ID": "PL", "CNTR_NAME": "Polska", "NAME_ENGL": "Poland", "ISO3_CODE": "POL", "FID": "PL", "name_de": "Polen", "refugees": 2944164, "flaeche": 1936.1369, "txt": "2.944.164" }, "geometry": { "type": "Point", "coordinates": [ 19.387637756998995, 52.187838987782044 ] } },
+{ "type": "Feature", "properties": { "CNTR_ID": "RU", "CNTR_NAME": "Россия", "NAME_ENGL": "Russian Federation", "ISO3_CODE": "RUS", "FID": "RU", "name_de": "Russland", "refugees": 627512, "flaeche": 893.8529, "txt": "627.512" }, "geometry": { "type": "Point", "coordinates": [ 40.127698659681272, 51.985494312018204 ] } },
+{ "type": "Feature", "properties": { "CNTR_ID": "SK", "CNTR_NAME": "Slovensko", "NAME_ENGL": "Slovakia", "ISO3_CODE": "SVK", "FID": "SK", "name_de": "Slowakei", "refugees": 360458, "flaeche": 677.458, "txt": "360.458" }, "geometry": { "type": "Point", "coordinates": [ 19.488768243350378, 48.712501516705778 ] } }
+]
+}

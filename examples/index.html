@@ -8,39 +8,40 @@
    <script src="//cdn.leafletjs.com/leaflet-0.7.2/leaflet.js"></script>
 
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+   <style>
+      .map {
+         width: 80%;
+         height: 500px;
+      }
+   </style>
    <script src="../leaflet.sld.js"></script>
 </head>
 <body>
 
-   <div id="map" style="width: 80%; height: 500px"></div>
-   <div id="click"></div>
-   <div id="hover"></div>
-
    <script type="text/javascript">
 
-      var map = L.map('map')
-            .setView([0, 0], 1)
-            .fitBounds([[48.330691283387175, 16.747283935546875], [48.09642606004488, 16.044158935546875]]);
-
-      var basemapTileLayer = L.tileLayer('http://maps{s}.wien.gv.at/basemap/bmapgrau/normal/google3857/{z}/{y}/{x}.png', {
-         "attribution": 'Basemap: <a target="_top" href="http://basemap.at">basemap.at</a>',
-         "subdomains": ['', '1', '2', '3', '4']
-      }).addTo(map);
-
-      var geoJsonPromise = fetch('./austrians-vienna.geojson');
-      var SLDPromise = fetch('./austrians-vienna.sld');
-      Promise.all([geoJsonPromise, SLDPromise]).then(function(results) {
-         Promise.all([results[0].json(), results[1].text()])
-            .then(function(result) {
-               var geoJson = result[0];
-               var SLDText = result[1];
-               var SLDStyler = new L.SLDStyler(SLDText)
-               var geojsonLayer = L.geoJson(geoJson, {
-                  style: SLDStyler.getStyleFunction()
-               }).addTo(map);
-         });
-      });
+      ['./areas/', './earthquake/', './refugee/', './vienna/'].forEach(path => {
+         const mapDiv = document.createElement('div');
+         mapDiv.classList.add('map');
+         document.body.appendChild(mapDiv)
+         const leafletMap = L.map(mapDiv);
+         var basemapTileLayer = L.tileLayer('//posm{s}.orf.at/maptiles/orf2022/{z}/{x}/{y}.png', {
+            "attribution": 'OSM, ORF.at',
+            "subdomains": ['1', '2']
+         }).addTo(leafletMap);
+         const dataJson = fetch(`${path}data.geojson`);
+         const dataSld = fetch(`${path}data.sld`);
+         Promise.all([dataJson, dataSld]).then(([jsonResponse, sldResponse]) => {
+            return Promise.all([jsonResponse.json(), sldResponse.text()])
+               .then(([geoJson, sldText]) => {
+                  const SLDStyler = new L.SLDStyler(sldText);
+                  const geojsonLayer = L.geoJson(geoJson, {
+                     style: SLDStyler.getStyleFunction()
+                  }).addTo(leafletMap);
+                  leafletMap.fitBounds(geojsonLayer.getBounds());
+               });
+         })
+      })
 
    </script>
 </body>
