@@ -11,14 +11,14 @@ var defaultStyle = {
    strokeOpacity: 1,
    strokeWidth: 1,
    strokeDashstyle: "solid",
-   pointRadius: 3,
+   size: 3,
    dashArray: null,
    lineJoin: null,
    lineCap: null,
 };
 
 // attributes converted to numeric values
-var numericAttributes = ['weight', 'opacity', 'fillOpacity', 'strokeOpacity'];
+var numericAttributes = ['weight', 'opacity', 'fillOpacity', 'strokeOpacity', 'size', 'rotation'];
 
 // mapping between SLD attribute names and SVG names
 var attributeNameMapping = {
@@ -30,9 +30,12 @@ var attributeNameMapping = {
    'stroke-opacity': 'strokeOpacity',
    'stroke-dasharray': 'dashArray',
    //strokeDashstyle,
-   //pointRadius,
    'stroke-linejoin': 'lineJoin',
-   'stroke-linecap': 'lineCap'
+   'stroke-linecap': 'lineCap',
+   // a bit special for pointsymboler, marker
+   'size': 'size',
+   'rotation': 'rotation',
+   'wellknownname': 'wellKnownName'
 };
 
 // mapping SLD operators to shortforms
@@ -110,8 +113,9 @@ L.SLDStyler = L.Class.extend({
       var parameters = getTagNameArray(symbolizer, 'se:SvgParameter');
       var cssParams = L.extend({}, defaultStyle);
 
-      if(!parameters.length)
+      if(!parameters.length) {
          parameters = getTagNameArray(symbolizer, 'se:CssParameter');
+      }
 
       parameters.forEach(function(param) {
          var key = param.getAttribute('name');
@@ -128,6 +132,26 @@ L.SLDStyler = L.Class.extend({
             cssParams[mappedKey] = value;
          }
       });
+      // invididual tags fro pointsymbolizer which is a bit special
+      ['Size', 'WellKnownName', 'Rotation'].forEach(tagName => {
+         const tags = getTagNameArray(symbolizer, 'se:' + tagName);
+         if (tags.length) {
+            const cssName = tagName.toLowerCase();
+            const mappedKey = attributeNameMapping[cssName];
+            let value = tags[0].textContent;
+            if (numericAttributes.indexOf(cssName) > -1) {
+               value = parseFloat(value, 10);
+            }
+            cssParams[mappedKey] = value;
+         }
+      })
+      const sizeTags = getTagNameArray(symbolizer, 'se:Size');
+      if (sizeTags.length) {
+      }
+      const wellKnownNameTags = getTagNameArray(symbolizer, 'se:WellKnownName');
+      if (wellKnownNameTags.length) {
+         cssParams[attributeNameMapping['wellknown']]
+      }
       return cssParams;
    },
    parseFilter: function(filter) {
@@ -293,8 +317,18 @@ L.SLDStyler = L.Class.extend({
 
       return {};
    },
+   pointToLayerFunction: function(indexOrName, feature, latlng) {
+      var styling = this.styleFn(indexOrName, feature);
+      return L.circleMarker(latlng, {
+         radius: styling.size || 1,
+         interactive: false
+      });
+   },
    getStyleFunction: function (indexOrName) {
       return this.styleFn.bind(this, indexOrName);
+   },
+   getPointToLayerFunction: function(indexOrName) {
+      return this.pointToLayerFunction.bind(this, indexOrName);
    }
 });
 
