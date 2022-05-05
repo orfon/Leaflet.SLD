@@ -1,8 +1,8 @@
-**Proof of concept only** 
+**Proof of concept only**
 
 # Leaflet.SLDStyler
 
-Apply styling from 1.1.0 SLD-File to a GeoJSON layer.
+Apply styling from 1.1.0 or 1.0 SLD-File to a GeoJSON layer.
 
 Rules can be ORed or ANDed. The following comparisions are possible:
 
@@ -37,6 +37,4 @@ Example:
 
 
 To be done:
-
- * Symbolizers beside Polygon
  * more styling properties and comparisions
