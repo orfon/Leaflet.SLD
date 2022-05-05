@@ -4,8 +4,8 @@
    <meta charset="utf-8" />
    <title>Leaflet.SLD example page</title>
 
-   <link rel="stylesheet" href="//cdn.leafletjs.com/leaflet-0.7.2/leaflet.css" />
-   <script src="//cdn.leafletjs.com/leaflet-0.7.2/leaflet.js"></script>
+   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.8.0/dist/leaflet.css" integrity="sha512-hoalWLoI8r4UszCkZ5kL8vayOGVae1oxXe/2A4AO6J9+580uKHDO3JdHb7NzwwzK5xr/Fs0W40kiNHxM9vyTtQ==" crossorigin="" />
+   <script src="https://unpkg.com/leaflet@1.8.0/dist/leaflet.js" integrity="sha512-BB3hKbKWOc9Ez/TAwyWxNXeoV9c1v6FIeYiBieIWkpLjauysF18NzgR1MBNBXf8/KABdlkX68nAhlwcDFLGPCQ==" crossorigin=""></script>
 
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
    <style>
@@ -20,7 +20,7 @@
 
    <script type="text/javascript">
 
-      ['./areas/', './earthquake/', './refugee/', './vienna/'].forEach(path => {
+      ['./fire/', './areas/', './earthquake/', './refugee/', './vienna/'].forEach(path => {
          const mapDiv = document.createElement('div');
          mapDiv.classList.add('map');
          document.body.appendChild(mapDiv)
@@ -36,7 +36,14 @@
                .then(([geoJson, sldText]) => {
                   const SLDStyler = new L.SLDStyler(sldText);
                   const geojsonLayer = L.geoJson(geoJson, {
-                     style: SLDStyler.getStyleFunction()
+                     style: SLDStyler.getStyleFunction(),
+                     pointToLayer: (feature, latlng) => {
+                        //if (feature.properties.radius) {
+                        return L.circleMarker(latlng, {
+                           radius: 5,
+                           interactive: false
+                        });
+                     },
                   }).addTo(leafletMap);
                   leafletMap.fitBounds(geojsonLayer.getBounds());
                });
