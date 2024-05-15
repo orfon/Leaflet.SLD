@@ -108,10 +108,11 @@ L.SLDStyler = L.Class.extend({
 
    // translates PolygonSymbolizer attributes into Path attributes
    parseSymbolizer: function(symbolizer) {
+      var cssParams = L.extend({}, defaultStyle);
+
       // SvgParameter names below se:Fill and se:Stroke
       // are unique so don't bother parsing them seperatly.
-      var parameters = getTagNameArray(symbolizer, 'se:SvgParameter');
-      var cssParams = L.extend({}, defaultStyle);
+      var parameters = getTagNameArray(symbolizer, 'se:SvgParameter');         
 
       if(!parameters.length) {
          parameters = getTagNameArray(symbolizer, 'se:CssParameter');
@@ -145,9 +146,12 @@ L.SLDStyler = L.Class.extend({
             cssParams[mappedKey] = value;
          }
       })
-      const sizeTags = getTagNameArray(symbolizer, 'se:Size');
-      if (sizeTags.length) {
+      // Verify if Stroke is not empty, otherwise disable it
+      var stroke = getTagNameArray(symbolizer, 'se:Stroke')[0];
+      if (!stroke.children.length) {
+         cssParams.stroke = false;
       }
+
       const wellKnownNameTags = getTagNameArray(symbolizer, 'se:WellKnownName');
       if (wellKnownNameTags.length) {
          cssParams[attributeNameMapping['wellknown']]
@@ -317,18 +321,20 @@ L.SLDStyler = L.Class.extend({
 
       return {};
    },
-   pointToLayerFunction: function(indexOrName, feature, latlng) {
-      var styling = this.styleFn(indexOrName, feature);
-      return L.circleMarker(latlng, {
-         radius: styling.size || 1,
-         interactive: false
-      });
+   pointToLayerFunction: function(indexOrName, options, feature, latlng) {
+      const styling = this.styleFn(indexOrName, feature);
+      const sldOptions = {
+         radius: styling.size || 1
+      };
+      const overrideOptions = options;
+      const merged = {...sldOptions, ...overrideOptions};
+      return L.circleMarker(latlng, merged);
    },
    getStyleFunction: function (indexOrName) {
       return this.styleFn.bind(this, indexOrName);
    },
-   getPointToLayerFunction: function(indexOrName) {
-      return this.pointToLayerFunction.bind(this, indexOrName);
+   getPointToLayerFunction: function(indexOrName, options) {
+      return this.pointToLayerFunction.bind(this, indexOrName, options);
    }
 });
 
