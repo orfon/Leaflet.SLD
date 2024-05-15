@@ -108,11 +108,11 @@ L.SLDStyler = L.Class.extend({
 
    // translates PolygonSymbolizer attributes into Path attributes
    parseSymbolizer: function(symbolizer) {
-      var cssParams = L.extend({}, defaultStyle);
 
       // SvgParameter names below se:Fill and se:Stroke
       // are unique so don't bother parsing them seperatly.
       var parameters = getTagNameArray(symbolizer, 'se:SvgParameter');         
+      var cssParams = L.extend({}, defaultStyle);
 
       if(!parameters.length) {
          parameters = getTagNameArray(symbolizer, 'se:CssParameter');
