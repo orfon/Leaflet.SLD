@@ -79,11 +79,19 @@ export default class LeafletSldLegend {
             const sizeNode = pointSymbolizerNode.querySelector('Size');
 
             // Get fill color
-            const fillColor = fillNode ? fillNode.querySelector('SvgParameter[name="fill"]').textContent : 'none';
-
+            let fillColorAttribute = "";
+            if (fillNode && fillNode.children.length) {
+                const fillColor = fillNode.querySelector('SvgParameter[name="fill"]').textContent;
+                fillColorAttribute = `fill="${fillColor}"`
+            }
+            
             // Get stroke color and width
-            const strokeColor = strokeNode ? strokeNode.querySelector('SvgParameter[name="stroke"]').textContent : 'none';
-            const strokeWidth = strokeNode ? strokeNode.querySelector('SvgParameter[name="stroke-width"]').textContent : '0';
+            let strokeAttributes = "";
+            if (strokeNode && strokeNode.children.length) {
+                const strokeColor = strokeNode ? strokeNode.querySelector('SvgParameter[name="stroke"]').textContent : 'none';
+                const strokeWidth = strokeNode ? strokeNode.querySelector('SvgParameter[name="stroke-width"]').textContent : '0';
+                strokeAttributes = `stroke="${strokeColor}" stroke-width="${strokeWidth}"`
+            }
 
             // Get the well-known name for the shape
             const wellKnownName = wellKnownNameNode ? wellKnownNameNode.textContent : '';
@@ -92,7 +100,7 @@ export default class LeafletSldLegend {
             const size = sizeNode ? sizeNode.textContent : '0';
 
             // Create an SVG representation of the shape (in this case, a circle)
-            svg += `<circle cx="50" cy="50" r="${size}" fill="${fillColor}" stroke="${strokeColor}" stroke-width="${strokeWidth}" />`;
+            svg += `<circle cx="50" cy="50" r="${size}" ${fillColorAttribute} ${strokeAttributes} />`;
         } else {
             // Check if there's a LineSymbolizer in the rule
             const lineSymbolizerNodes = ruleNode.getElementsByTagNameNS(namespaces.se, 'LineSymbolizer');
